@@ -2,6 +2,7 @@
 #define _CARD_DV_
 
 #include <string>
+#include <algorithm>
 
 // Spades = 0
 // Clubs = 1
@@ -16,30 +17,30 @@ class card {
     public:
         card(int val, int suit) : val_(val), suit_(suit) { }
 
-        card(card const& c) : val_(c.val()), suit_(c.suit()) { }
+        card(card const& c) : val_(c.val_), suit_(c.suit_) { }
 
         card& operator =(card const& c) {
-            val_ = c.val();
-            suit_ = c.suit();
+            val_ = c.val_;
+            suit_ = c.suit_;
             return *this;
         }
 
-        card(card&& c) : val_(c.val()), suit_(c.suit()) { }
+        card(card&& c) : val_(std::move(c.suit_)), suit_(std::move(c.suit_)) { }
 
         card& operator =(card&& c) {
-            val_ = c.val();
-            suit_ = c.suit();
+            val_ = std::move(c.val_);
+            suit_ = std::move(c.suit_);
             return *this;
         }
 
         int val() const { return val_; }
         int suit() const { return suit_; }
 
-        bool operator <(card c) const {
+        bool operator <(card const& c) const {
             return val_ < c.val();
         }
 
-        bool operator >(card c) const {
+        bool operator >(card const& c) const {
             return val_ > c.val();
         }
 

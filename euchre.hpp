@@ -18,9 +18,10 @@
 // player queries regarding valid plays
 
 class euchre {
-    public:
+    private:
         std::vector<card> cards_;
 
+    public:
         euchre() {
             for (int i = 0; i < 4; ++i) {
                 for (int j = 9; j <= 14; ++j) {
@@ -46,6 +47,8 @@ class euchre {
         ~euchre() {
             cards_.clear();
         }
+
+        std::vector<card> cards() { return cards_; }
 
         // Return the deck of cards in queue form, to be used for dealing
         std::queue<card> make_queue() const {
@@ -92,12 +95,12 @@ class euchre {
             std::vector<card> valid;
             bool l;
 
-            for (card c : h.cards_) {
-                if (suit(trump, c) == suit(trump, lead));
+            for (card c : h.cards()) {
+                if (suit(trump, c) == suit(trump, lead))
                     l = true;
             }
 
-            for (card c : h.cards_) {
+            for (card c : h.cards()) {
                 if (l) {
                     if (suit(trump, c) == suit(trump, lead))
                         valid.push_back(c);

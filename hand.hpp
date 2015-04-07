@@ -7,9 +7,10 @@
 #include <iostream>
 
 class hand {
-    public:
+    private:
         std::vector<card> cards_;
 
+    public:
         hand() : cards_() { }
 
         hand(hand const& h) : cards_(h.cards_) { }
@@ -29,6 +30,8 @@ class hand {
         ~hand() {
             cards_.clear();
         }
+
+        std::vector<card> cards() { return cards_; }
 
         void add_card(card c) {
             cards_.push_back(c);
