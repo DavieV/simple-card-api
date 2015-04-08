@@ -17,9 +17,9 @@ class deck {
 
         // Default constructor, builds a basic deck of cards
         deck() {
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 2; j <= 14; ++j) {
-                    cards_.emplace_back(j, i);
+            for (suits s = suits::spades; s <= suits::hearts; ++s) {
+                for (card_val v = card_val::two; v <= card_val::ace; ++j) {
+                    cards_.emplace_back(v, s);
                 }
             }
         }
@@ -90,7 +90,7 @@ class deck {
 
         void print_cards() const {
             for (card c : cards_)
-                std::cout << c.name() << " ";
+                std::cout << c) << " ";
             std::cout << std::endl;
         }
 };

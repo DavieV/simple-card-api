@@ -23,10 +23,13 @@ class euchre {
 
     public:
         euchre() {
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 9; j <= 14; ++j) {
-                    cards_.emplace_back(j, i);
+            int i = 0;
+            int j = 0;
+            for (suits s = suits::spades; i < 4; ++s, ++i) {
+                for (card_val v = card_val::nine; j < 6; ++v, ++j) {
+                    cards_.emplace_back(v, s);
                 }
+                j = 0;
             }
         }
 
@@ -59,11 +62,7 @@ class euchre {
         }
 
         std::vector<hand> deal(std::queue<card>& q) const {
-            std::vector<hand> hands;
-
-            // fill the vector with default-constructed hand objects
-            for (int i = 0; i < 4; ++i)
-                hands.emplace_back();
+            std::vector<hand> hands(4);
 
             for (int i = 0; i < 5; ++i) {
                 for (int j = 0; j < 4; ++j) {
@@ -75,7 +74,7 @@ class euchre {
             return hands;
         }
 
-        card trick(int trump, card c1, card c2, card c3, card c4) const {
+        card trick(suits trump, card c1, card c2, card c3, card c4) const {
             std::vector<card> follow{c2, c3, c4};
             card cand = c1;  // c1 is default candidate
 
@@ -91,7 +90,7 @@ class euchre {
         }
 
         // Returns a vector of cards which are currently valid to play
-        std::vector<card> valid_plays(hand h, int trump, card lead) {
+        std::vector<card> valid_plays(hand h, suits trump, card lead) {
             std::vector<card> valid;
             bool l;
 
@@ -113,7 +112,7 @@ class euchre {
         }
 
         // Return the min of two cards, includes whether they are trump
-        card min_c(int trump, card c1, card c2) const {
+        card min_c(suits trump, card c1, card c2) const {
             // If both cards are trump, return the lesser of the two
             if (c1.suit() == trump && c2.suit() == trump)
                 return (c1 < c2) ? c1 : c2;
@@ -127,7 +126,7 @@ class euchre {
         }
 
         // Return the max of two cards, includes whether they are trump
-        card max_c(int trump, card c1, card c2) const {
+        card max_c(suits trump, card c1, card c2) const {
             if (suit(trump, c1) == suit(trump, c2)) {
                 if (is_r_bower(trump, c1))
                     return c1;
@@ -148,23 +147,23 @@ class euchre {
         }
 
         // Determines if c is right bower based on trump
-        bool is_r_bower(int trump, card c) const {
-            return (c.suit() == trump && c.val() == 11);
+        bool is_r_bower(suits trump, card c) const {
+            return (c.suit() == trump && c.val() == card_val::jack);
         }
 
         // Determines if c is left bower based on trump
-        bool is_l_bower(int trump, card c) const {
-            if (trump == 0)
-                return (c.suit() == 1 && c.val() == 11);
-            if (trump == 1)
-                return (c.suit() == 0 && c.val() == 11);
-            if (trump == 2)
-                return (c.suit() == 3 && c.val() == 11);
-            return (c.suit() == 2 && c.val() == 11);
+        bool is_l_bower(suits trump, card c) const {
+            if (trump == suits::spades)
+                return (c.suit() == suits::clubs && c.val() == card_val::jack);
+            if (trump == suits::clubs)
+                return (c.suit() == suits::spades && c.val() == card_val::jack);
+            if (trump == suits::diamonds)
+                return (c.suit() == suits::hearts && c.val() == card_val::jack);
+            return (c.suit() == suits::diamonds && c.val() == card_val::jack);
         }
 
         // Free suit() function which accounts for trump when checking suit
-        int suit(int trump, card c) const {
+        suits suit(suits trump, card c) const {
             if (is_l_bower(trump, c))
                 return trump;
             return c.suit();
@@ -187,7 +186,7 @@ class euchre {
 
         void print_cards() const {
             for (card c : cards_)
-                std::cout << c.name() << " ";
+                std::cout << c << " ";
             std::cout << std::endl;
         }
 };

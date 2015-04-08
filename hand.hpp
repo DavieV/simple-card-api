@@ -34,7 +34,7 @@ class hand {
         std::vector<card> cards() { return cards_; }
 
         void add_card(card c) {
-            cards_.push_back(c);
+            cards_.emplace_back(c);
         }
 
         void swap_cards(card c, int i) {
@@ -51,7 +51,7 @@ class hand {
 
         void print_hand() const {
             for (card c : cards_)
-                std::cout << c.name() << " ";
+                std::cout << c << " ";
             std::cout << std::endl;
         }
 };
