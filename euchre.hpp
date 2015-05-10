@@ -11,17 +11,18 @@
 #include <algorithm>
 #include <iostream>
 
-// Possible additions:
-// scoring system
-// basic game loop
-// trump selection
-// player queries regarding valid plays
-
 class euchre {
     private:
         std::vector<card> cards_;
+        suits trump_;
+        int dealer_;
 
     public:
+        // ------------------------------------------------------
+        // -------------------- Constructors --------------------
+        // ------------------------------------------------------
+
+        // Default constructor fills in the vector of cards with a euchre deck
         euchre() {
             int i = 0;
             int j = 0;
@@ -31,19 +32,29 @@ class euchre {
                 }
                 j = 0;
             }
+            dealer_ = 0;
         }
 
-        euchre(euchre const& d) : cards_(d.cards_) { }
+        // Copy constructor
+        euchre(euchre const& d) : cards_(d.cards_), dealer_(d.dealer_)  { }
 
+        // Copy assignment operator
         euchre& operator =(euchre const& d) {
             cards_ = d.cards_;
+            dealer_ = d.dealer_;
             return *this;
         }
 
-        euchre(euchre&& d) : cards_(d.cards_) { }
+        // Move constructor
+        euchre(euchre&& d) : 
+            cards_(std::move(d.cards_)),
+            dealer_(std::move(d.dealer_))
+        { }
 
+        // Move assignment operator
         euchre& operator =(euchre&& d) {
-            cards_ = d.cards_;
+            cards_ = std::move(d.cards_);
+            dealer_ = std::move(d.dealer_);
             return *this;
         }
 
@@ -51,8 +62,24 @@ class euchre {
             cards_.clear();
         }
 
-        std::vector<card> cards() { return cards_; }
+        // ---------------------------------------------------------
+        // ------------------ Get/Set Functions --------------------
+        // ---------------------------------------------------------
 
+        std::vector<card> cards() { return cards_; }
+    
+        suits trump() { return trump_; }
+
+        int dealer() { return dealer_; }
+
+        void set_trump(suits t) { trump_ = t; }
+
+        void change_dealer() { dealer_ = (dealer_ + 1) % 4; }
+
+        // ----------------------------------------------------------
+        // ------------------ Utility Functions ---------------------
+        // ----------------------------------------------------------
+ 
         // Return the deck of cards in queue form, to be used for dealing
         std::queue<card> make_queue() const {
             std::queue<card> q;
@@ -61,6 +88,8 @@ class euchre {
             return q;
         }
 
+        // Deals each player a hand using a queue. The remaining cards on the
+        // queue are the kiddy (the queue is passed by reference)
         std::vector<hand> deal(std::queue<card>& q) const {
             std::vector<hand> hands(4);
 
@@ -74,34 +103,43 @@ class euchre {
             return hands;
         }
 
-        card trick(suits trump, card c1, card c2, card c3, card c4) const {
+        // Returns the winner of a trick based on the 4 cards in play
+        // as well as the current trump suit
+        card trick(card c1, card c2, card c3, card c4) const {
             std::vector<card> follow{c2, c3, c4};
             card cand = c1;  // c1 is default candidate
 
             // Iterate through the cards to determine a winner
             for (card c : follow) {
-                if (suit(trump, c) == suit(trump, cand))
-                    cand = max_c(trump, cand, c);
-                else if (suit(trump, c) == trump && suit(trump, cand) != trump)
+                if (suit(c) == suit(cand))
+                    cand = max_c(cand, c);
+                else if (suit(c) == trump_)
                     cand = c;
             }
 
             return cand;
         }
 
-        // Returns a vector of cards which are currently valid to play
-        std::vector<card> valid_plays(hand h, suits trump, card lead) {
+        // Returns a vector of valid cards in the hand which are valid
+        // to play based on the current trump
+        std::vector<card> valid_plays(hand h, card lead) {
             std::vector<card> valid;
             bool l;
 
+            // Determine if the player has at least one card that is the same
+            // suit as the lead
             for (card c : h.cards()) {
-                if (suit(trump, c) == suit(trump, lead))
+                if (suit(c) == suit(lead)) {
                     l = true;
+                    break;
+                }
             }
 
+            // If l is true add only cards of the valid suit
+            // otherwise all cards are valid
             for (card c : h.cards()) {
                 if (l) {
-                    if (suit(trump, c) == suit(trump, lead))
+                    if (suit(c) == suit(lead))
                         valid.push_back(c);
                 } else {
                     valid.push_back(c);
@@ -112,60 +150,67 @@ class euchre {
         }
 
         // Return the min of two cards, includes whether they are trump
-        card min_c(suits trump, card c1, card c2) const {
-            // If both cards are trump, return the lesser of the two
-            if (c1.suit() == trump && c2.suit() == trump)
+        card min_c(card c1, card c2) const {
+            if (suit(c1) == suit(c2)) {
+                if (is_r_bower(c1))
+                    return c2;
+                if (is_r_bower(c2))
+                    return c1;
+                if (is_l_bower(c1))
+                    return c2;
+                if (is_l_bower(c2))
+                    return c1;
                 return (c1 < c2) ? c1 : c2;
-            // If one card is trump and one isn't, return the non-trump
-            else if (c1.suit() != trump && c2.suit() == trump)
-                return c1;
-            else if (c2.suit() != trump && c1.suit() == trump)
-                return c2;
-            else
+            } else {
+                if (suit(c1) == trump_)
+                    return c2;
+                if (suit(c2) == trump_)
+                    return c1;
                 return (c1 < c2) ? c1 : c2;
+            }
         }
 
         // Return the max of two cards, includes whether they are trump
-        card max_c(suits trump, card c1, card c2) const {
-            if (suit(trump, c1) == suit(trump, c2)) {
-                if (is_r_bower(trump, c1))
+        card max_c(card c1, card c2) const {
+            if (suit(c1) == suit(c2)) {
+                if (is_r_bower(c1))
                     return c1;
-                if (is_r_bower(trump, c2))
+                if (is_r_bower(c2))
                     return c2;
-                if (is_l_bower(trump, c1))
+                if (is_l_bower(c1))
                     return c1;
-                if (is_l_bower(trump, c2))
+                if (is_l_bower(c2))
                     return c2;
                 return (c1 > c2) ? c1 : c2;
             } else {
-                if (c1.suit() == trump)
+                if (suit(c1) == trump_)
                     return c1;
-                if (c2.suit() == trump)
+                if (suit(c2) == trump_)
                     return c2;
                 return (c1 > c2) ? c1 : c2;
             }
         }
 
         // Determines if c is right bower based on trump
-        bool is_r_bower(suits trump, card c) const {
-            return (c.suit() == trump && c.val() == card_val::jack);
+        bool is_r_bower(card c) const {
+            return (c.suit() == trump_ && c.val() == card_val::jack);
         }
 
         // Determines if c is left bower based on trump
-        bool is_l_bower(suits trump, card c) const {
-            if (trump == suits::spades)
+        bool is_l_bower(card c) const {
+            if (trump_ == suits::spades)
                 return (c.suit() == suits::clubs && c.val() == card_val::jack);
-            if (trump == suits::clubs)
+            if (trump_ == suits::clubs)
                 return (c.suit() == suits::spades && c.val() == card_val::jack);
-            if (trump == suits::diamonds)
+            if (trump_ == suits::diamonds)
                 return (c.suit() == suits::hearts && c.val() == card_val::jack);
             return (c.suit() == suits::diamonds && c.val() == card_val::jack);
         }
 
         // Free suit() function which accounts for trump when checking suit
-        suits suit(suits trump, card c) const {
-            if (is_l_bower(trump, c))
-                return trump;
+        suits suit(card c) const {
+            if (is_l_bower(c))
+                return trump_;
             return c.suit();
         }
 
@@ -180,6 +225,7 @@ class euchre {
                 std::swap(cards_[i], cards_[roll()]);
         }
 
+        // Sorts the cards based on their basic values, ignores trump
         void sort_cards() {
             std::sort(cards_.begin(), cards_.end());
         }
