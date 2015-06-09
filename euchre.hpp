@@ -13,9 +13,9 @@
 
 class euchre {
     private:
-        std::vector<card> cards_;
-        suits trump_;
-        int dealer_;
+        std::vector<card> cards_;   // cards in the euchre deck
+        suits trump_;               // current trump during the round
+        int dealer_;                // 'index' of the current dealer
 
     public:
         // ------------------------------------------------------
@@ -67,7 +67,7 @@ class euchre {
         // ---------------------------------------------------------
 
         std::vector<card> cards() { return cards_; }
-    
+
         suits trump() { return trump_; }
 
         int dealer() { return dealer_; }
@@ -79,7 +79,7 @@ class euchre {
         // ----------------------------------------------------------
         // ------------------ Utility Functions ---------------------
         // ----------------------------------------------------------
- 
+
         // Return the deck of cards in queue form, to be used for dealing
         std::queue<card> make_queue() const {
             std::queue<card> q;
@@ -106,6 +106,7 @@ class euchre {
         // Returns the winner of a trick based on the 4 cards in play
         // as well as the current trump suit
         card trick(card c1, card c2, card c3, card c4) const {
+            // Create a vector with the 3 remaining cards
             std::vector<card> follow{c2, c3, c4};
             card cand = c1;  // c1 is default candidate
 
@@ -214,7 +215,7 @@ class euchre {
             return c.suit();
         }
 
-        // Shuffle the deck by randomly swapping the card at every index
+        // Shuffle the deck by randomly swapping the cards at every index
         void shuffle() {
             std::uniform_int_distribution<int> dist(0, 23);
             std::knuth_b gen;
